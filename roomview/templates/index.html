@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoomView - Browse and Shop Your Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-home"></i>
+                <span>RoomView</span>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" placeholder="Search for products..." class="search-bar">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
+            <nav class="nav-links">
+                <a href="#" class="nav-link">Categories</a>
+                <a href="#" class="nav-link" onclick="showWishlist()">
+                    Wishlist
+                    <span class="wishlist-count">0</span>
+                </a>
+                <a href="#" class="nav-link">Order History</a>
+            </nav>
+            
+            <div class="nav-actions">
+                <button class="cart-btn" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </button>
+                <button class="user-btn">
+                    <i class="fas fa-user"></i>
+                </button>
+                <button class="admin-toggle" onclick="toggleAdminView()">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Menu -->
+    <div class="mobile-nav" id="mobileNav">
+        <a href="#" class="mobile-nav-link">Categories</a>
+        <a href="#" class="mobile-nav-link">Wishlist</a>
+        <a href="#" class="mobile-nav-link">Order History</a>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Room Selection Landing Page -->
+        <section class="hero-section" id="heroSection">
+            <div class="hero-content">
+                <h1>Shop Your Home Room by Room</h1>
+                <p>Discover home goods by exploring virtual rooms. Click on areas that interest you and find the perfect products for your space.</p>
+                <div class="hero-features">
+                    <span class="hero-feature">✨ Interactive shopping experience</span>
+                </div>
+            </div>
+            
+            <div class="section-header">
+                <h2>Choose Your Room</h2>
+                <p>Select a room to start your shopping journey. Each room offers an interactive experience tailored to that space.</p>
+            </div>
+            
+            <div class="rooms-grid">
+                <div class="room-card kitchen-card" onclick="enterRoom('kitchen')">
+                    <div class="room-image kitchen-image">
+                        <div class="room-overlay">
+                            <div class="room-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <h3>Kitchen</h3>
+                            <p>Cooking essentials and organization</p>
+                            <div class="room-status available">✓ Available</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="room-card living-card" onclick="enterRoom('living')">
+                    <div class="room-image living-image">
+                        <div class="room-overlay">
+                            <div class="room-icon">
+                                <i class="fas fa-couch"></i>
+                            </div>
+                            <h3>Living Room</h3>
+                            <p>Furniture, decor, and entertainment</p>
+                            <div class="room-status available">✓ Available</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="room-card bedroom-card" onclick="enterRoom('bedroom')">
+                    <div class="room-image bedroom-image">
+                        <div class="room-overlay">
+                            <div class="room-icon">
+                                <i class="fas fa-bed"></i>
+                            </div>
+                            <h3>Bedroom</h3>
+                            <p>Bedding, storage, and comfort</p>
+                            <div class="room-status available">✓ Available</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="room-card bathroom-card" onclick="enterRoom('bathroom')">
+                    <div class="room-image bathroom-image">
+                        <div class="room-overlay">
+                            <div class="room-icon">
+                                <i class="fas fa-bath"></i>
+                            </div>
+                            <h3>Bathroom</h3>
+                            <p>Bath essentials and organization</p>
+                            <div class="room-status available">✓ Available</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="features-section">
+                <h2>Why RoomView?</h2>
+                <p>Experience shopping like never before</p>
+                
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <h4>Context-Aware Shopping</h4>
+                        <p>Find products based on where you'll actually use them in your home</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <h4>Visual Discovery</h4>
+                        <p>Click on room areas to discover relevant products and solutions</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h4>Curated Collections</h4>
+                        <p>Every product is carefully selected for quality and functionality</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Room View -->
+        <section class="room-view" id="roomView" style="display: none;">
+            <div class="room-header">
+                <button class="back-btn" onclick="backToRooms()">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Rooms
+                </button>
+                <h2 id="roomTitle">Kitchen</h2>
+            </div>
+            
+            <div class="room-layout">
+                <div class="room-instruction">
+                    <span>Click the numbered hotspots to discover products</span>
+                </div>
+                <div class="room-layout-container" id="roomLayoutContainer">
+                    <!-- Kitchen Layout -->
+                    <div class="kitchen-layout" id="kitchenLayout">
+                        <div class="hotspot hotspot-1" onclick="showProducts('cabinet')" data-tooltip="Cabinet Storage">
+                            <span class="hotspot-number">1</span>
+                        </div>
+                        <div class="hotspot hotspot-2" onclick="showProducts('sink')" data-tooltip="Sink Area">
+                            <span class="hotspot-number">2</span>
+                        </div>
+                        <div class="hotspot hotspot-3" onclick="showProducts('counter')" data-tooltip="Countertop">
+                            <span class="hotspot-number">3</span>
+                        </div>
+                        <div class="hotspot hotspot-4" onclick="showProducts('fridge')" data-tooltip="Refrigerator">
+                            <span class="hotspot-number">4</span>
+                        </div>
+                    </div>
+
+                    <!-- Living Room Layout -->
+                    <div class="living-layout" id="livingLayout" style="display: none;">
+                        <div class="hotspot hotspot-1" onclick="showProducts('furniture')" data-tooltip="Furniture & Decor">
+                            <span class="hotspot-number">1</span>
+                        </div>
+                        <div class="hotspot hotspot-2" onclick="showProducts('entertainment')" data-tooltip="Entertainment Center">
+                            <span class="hotspot-number">2</span>
+                        </div>
+                        <div class="hotspot hotspot-3" onclick="showProducts('lighting')" data-tooltip="Lighting">
+                            <span class="hotspot-number">3</span>
+                        </div>
+                        <div class="hotspot hotspot-4" onclick="showProducts('plants')" data-tooltip="Plants & Greenery">
+                            <span class="hotspot-number">4</span>
+                        </div>
+                    </div>
+
+                    <!-- Bedroom Layout -->
+                    <div class="bedroom-layout" id="bedroomLayout" style="display: none;">
+                        <div class="hotspot hotspot-1" onclick="showProducts('bedding')" data-tooltip="Bedding">
+                            <span class="hotspot-number">1</span>
+                        </div>
+                        <div class="hotspot hotspot-2" onclick="showProducts('storage')" data-tooltip="Storage Solutions">
+                            <span class="hotspot-number">2</span>
+                        </div>
+                        <div class="hotspot hotspot-3" onclick="showProducts('nightstand')" data-tooltip="Nightstand">
+                            <span class="hotspot-number">3</span>
+                        </div>
+                        <div class="hotspot hotspot-4" onclick="showProducts('dresser')" data-tooltip="Dresser & Vanity">
+                            <span class="hotspot-number">4</span>
+                        </div>
+                    </div>
+
+                    <!-- Bathroom Layout -->
+                    <div class="bathroom-layout" id="bathroomLayout" style="display: none;">
+                        <div class="hotspot hotspot-1" onclick="showProducts('shower')" data-tooltip="Shower & Bath">
+                            <span class="hotspot-number">1</span>
+                        </div>
+                        <div class="hotspot hotspot-2" onclick="showProducts('vanity')" data-tooltip="Vanity & Mirror">
+                            <span class="hotspot-number">2</span>
+                        </div>
+                        <div class="hotspot hotspot-3" onclick="showProducts('toilet')" data-tooltip="Toilet Area">
+                            <span class="hotspot-number">3</span>
+                        </div>
+                        <div class="hotspot hotspot-4" onclick="showProducts('towels')" data-tooltip="Towels & Storage">
+                            <span class="hotspot-number">4</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="room-areas">
+                    <div class="area-item">
+                        <span class="area-number">1</span>
+                        <span class="area-name">Cabinet Storage</span>
+                    </div>
+                    <div class="area-item">
+                        <span class="area-number">2</span>
+                        <span class="area-name">Sink Area</span>
+                    </div>
+                    <div class="area-item">
+                        <span class="area-number">3</span>
+                        <span class="area-name">Countertop</span>
+                    </div>
+                    <div class="area-item">
+                        <span class="area-number">4</span>
+                        <span class="area-name">Refrigerator</span>
+                    </div>
+                </div>
+                
+                <div class="room-sidebar">
+                    <div class="room-info">
+                        <div class="room-icon">🏠</div>
+                        <h3>Explore the Kitchen</h3>
+                        <p>Click on any numbered hotspot to discover products for that area</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Discovery Grid -->
+        <section class="products-section" id="productsSection" style="display: none;">
+            <div class="products-header">
+                <button class="back-btn" onclick="backToRoom()">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Room
+                </button>
+                <h2 id="productsTitle">Cabinet Storage Products</h2>
+            </div>
+            
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be dynamically loaded here -->
+            </div>
+        </section>
+
+        <!-- Wishlist Section -->
+        <section class="wishlist-section" id="wishlistSection" style="display: none;">
+            <div class="wishlist-header">
+                <button class="back-btn" onclick="backToRooms()">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Rooms
+                </button>
+                <h2>Your Wishlist</h2>
+            </div>
+            
+            <div class="wishlist-content">
+                <div class="wishlist-grid" id="wishlistGrid">
+                    <!-- Wishlist items will be dynamically loaded here -->
+                </div>
+                <div class="empty-wishlist" id="emptyWishlist" style="display: none;">
+                    <i class="far fa-heart"></i>
+                    <h3>Your wishlist is empty</h3>
+                    <p>Start exploring rooms and add products you love!</p>
+                    <button class="back-btn" onclick="backToRooms()">
+                        Explore Rooms
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard -->
+        <section class="admin-dashboard" id="adminDashboard" style="display: none;">
+            <div class="admin-header">
+                <h2>Admin Dashboard</h2>
+                <button class="close-admin" onclick="toggleAdminView()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="admin-content">
+                <div class="admin-section">
+                    <h3>Product Management</h3>
+                    <div class="admin-card">
+                        <form class="add-product-form">
+                            <input type="text" placeholder="Product Name" required>
+                            <select required>
+                                <option value="">Select Category</option>
+                                <option value="cabinet">Cabinet</option>
+                                <option value="sink">Sink</option>
+                                <option value="counter">Counter</option>
+                                <option value="fridge">Fridge</option>
+                            </select>
+                            <input type="number" placeholder="Price" step="0.01" required>
+                            <input type="number" placeholder="Stock" required>
+                            <button type="submit">Add Product</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <h3>Sales Overview</h3>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <h4>Total Sales</h4>
+                            <span class="metric-value">$12,450</span>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Orders Today</h4>
+                            <span class="metric-value">23</span>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Low Stock Items</h4>
+                            <span class="metric-value alert">5</span>
+                        </div>
+                        <div class="metric-card">
+                            <h4>Active Users</h4>
+                            <span class="metric-value">1,247</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Shopping Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button class="close-cart" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="cart-content">
+            <div class="cart-items" id="cartItems">
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>Your cart is empty</p>
+                    <p>Start shopping to add items!</p>
+                </div>
+            </div>
+            
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total: $<span id="cartTotal">0.00</span></span>
+                </div>
+                <button class="checkout-btn" onclick="checkout()">
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="product-modal" onclick="event.stopPropagation()">
+            <button class="close-modal" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="modal-content">
+                <div class="modal-image">
+                    <img id="modalProductImage" src="" alt="Product Image">
+                </div>
+                
+                <div class="modal-details">
+                    <h3 id="modalProductName"></h3>
+                    <p id="modalProductDescription"></p>
+                    <div class="modal-price">$<span id="modalProductPrice"></span></div>
+                    
+                    <div class="modal-actions">
+                        <button class="add-to-cart-btn" onclick="addToCartFromModal()">
+                            <i class="fas fa-shopping-cart"></i>
+                            Add to Cart
+                        </button>
+                        <button class="wishlist-btn" onclick="addToWishlistFromModal()">
+                            <i class="far fa-heart"></i>
+                            Add to Wishlist
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
