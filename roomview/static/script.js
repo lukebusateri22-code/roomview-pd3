@@ -92,9 +92,11 @@ const productData = {
 // Shopping cart and wishlist state
 let cart = [];
 let wishlist = [];
+let orderHistory = [];
 let currentView = 'home';
 let currentRoom = '';
 let currentArea = '';
+let currentUser = { name: 'Guest User', email: 'guest@roomview.com' };
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -203,18 +205,31 @@ function showProducts(area) {
     
     document.getElementById('roomView').style.display = 'none';
     document.getElementById('productsSection').style.display = 'block';
+    document.getElementById('wishlistSection').style.display = 'none';
     
     const areaNames = {
         cabinet: 'Cabinet Storage',
         sink: 'Sink Area',
         counter: 'Countertop',
-        fridge: 'Refrigerator'
+        fridge: 'Refrigerator',
+        furniture: 'Furniture & Decor',
+        entertainment: 'Entertainment Center',
+        lighting: 'Lighting',
+        plants: 'Plants & Greenery',
+        bedding: 'Bedding',
+        storage: 'Storage Solutions',
+        nightstand: 'Nightstand',
+        dresser: 'Dresser & Vanity',
+        shower: 'Shower & Bath',
+        vanity: 'Vanity & Mirror',
+        toilet: 'Toilet Area',
+        towels: 'Towels & Storage'
     };
     
-    document.getElementById('productsTitle').textContent = `${areaNames[area]} Products`;
+    document.getElementById('productsTitle').textContent = `${areaNames[area] || area} Products`;
     
     renderProducts(area);
-    showMessage(`Showing products for ${areaNames[area]}`, 'success');
+    showMessage(`Showing products for ${areaNames[area] || area}`, 'success');
 }
 
 // Product rendering
@@ -351,8 +366,19 @@ function checkout() {
     showLoading();
     
     setTimeout(() => {
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const order = {
+            id: 'ORD-' + Date.now(),
+            date: new Date().toLocaleDateString(),
+            items: [...cart],
+            total: total,
+            status: 'Processing'
+        };
+        
+        orderHistory.unshift(order);
+        
         hideLoading();
-        showMessage(`Order placed successfully! Total: $${cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}`, 'success');
+        showMessage(`Order placed successfully! Order #${order.id} - Total: $${total.toFixed(2)}`, 'success');
         cart = [];
         updateCartDisplay();
         toggleCart();
@@ -523,10 +549,27 @@ function toggleMobileMenu() {
 }
 
 // Search functionality
-document.querySelector('.search-bar').addEventListener('input', function(e) {
-    const query = e.target.value.toLowerCase();
-    if (query.length > 2) {
-        searchProducts(query);
+function performSearch() {
+    const searchBar = document.getElementById('searchBar');
+    const query = searchBar.value.toLowerCase().trim();
+    
+    if (query.length < 2) {
+        showMessage('Please enter at least 2 characters to search', 'error');
+        return;
+    }
+    
+    searchProducts(query);
+}
+
+// Allow Enter key to trigger search
+document.addEventListener('DOMContentLoaded', function() {
+    const searchBar = document.getElementById('searchBar');
+    if (searchBar) {
+        searchBar.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
     }
 });
 
@@ -534,14 +577,54 @@ function searchProducts(query) {
     const allProducts = Object.values(productData).flat();
     const results = allProducts.filter(product => 
         product.name.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query)
+        product.description.toLowerCase().includes(query) ||
+        product.category.toLowerCase().includes(query)
     );
     
     if (results.length > 0) {
-        showMessage(`Found ${results.length} products matching "${query}"`, 'success');
+        showSearchResults(results, query);
     } else {
         showMessage(`No products found for "${query}"`, 'error');
     }
+}
+
+function showSearchResults(results, query) {
+    currentView = 'search';
+    
+    document.getElementById('heroSection').style.display = 'none';
+    document.getElementById('roomView').style.display = 'none';
+    document.getElementById('productsSection').style.display = 'block';
+    document.getElementById('wishlistSection').style.display = 'none';
+    
+    document.getElementById('productsTitle').textContent = `Search Results for "${query}" (${results.length} found)`;
+    
+    const productsGrid = document.getElementById('productsGrid');
+    productsGrid.innerHTML = results.map(product => {
+        const inWishlist = isInWishlist(product.id);
+        const heartIcon = inWishlist ? 'fas' : 'far';
+        const wishlistClass = inWishlist ? 'active' : '';
+        
+        return `
+            <div class="product-card" data-product-id="${product.id}">
+                <div class="product-image">${product.image}</div>
+                <div class="product-name">${product.name}</div>
+                <div class="product-price">$${product.price}</div>
+                <div class="product-actions">
+                    <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                    <button class="view-details-btn" onclick="showProductModal('${product.id}')">
+                        View Details
+                    </button>
+                    <button class="wishlist-btn ${wishlistClass}" onclick="toggleWishlist('${product.id}')">
+                        <i class="${heartIcon} fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    showMessage(`Found ${results.length} products matching "${query}"`, 'success');
 }
 
 // Utility functions
@@ -684,6 +767,122 @@ document.addEventListener('click', function(e) {
         trackEvent('add_to_cart', { product: e.target.closest('.product-card')?.querySelector('.product-name')?.textContent });
     }
 });
+
+// Categories functionality
+function showCategories() {
+    const categories = [
+        { name: 'Kitchen', icon: 'fa-utensils', room: 'kitchen' },
+        { name: 'Living Room', icon: 'fa-couch', room: 'living' },
+        { name: 'Bedroom', icon: 'fa-bed', room: 'bedroom' },
+        { name: 'Bathroom', icon: 'fa-bath', room: 'bathroom' }
+    ];
+    
+    showMessage('Browse by category - Select a room to explore!', 'success');
+    backToRooms();
+}
+
+// Order History functionality
+function showOrderHistory() {
+    currentView = 'orders';
+    
+    document.getElementById('heroSection').style.display = 'none';
+    document.getElementById('roomView').style.display = 'none';
+    document.getElementById('productsSection').style.display = 'none';
+    document.getElementById('wishlistSection').style.display = 'none';
+    
+    // Create order history section if it doesn't exist
+    let orderSection = document.getElementById('orderHistorySection');
+    if (!orderSection) {
+        orderSection = document.createElement('section');
+        orderSection.id = 'orderHistorySection';
+        orderSection.className = 'wishlist-section';
+        orderSection.innerHTML = `
+            <div class="wishlist-header">
+                <button class="back-btn" onclick="backToRooms()">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Rooms
+                </button>
+                <h2>Order History</h2>
+            </div>
+            <div class="wishlist-content">
+                <div id="orderHistoryGrid" class="wishlist-grid"></div>
+                <div id="emptyOrders" class="empty-wishlist" style="display: none;">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>No orders yet</h3>
+                    <p>Start shopping and your orders will appear here!</p>
+                    <button class="back-btn" onclick="backToRooms()">Explore Rooms</button>
+                </div>
+            </div>
+        `;
+        document.querySelector('.main-content').appendChild(orderSection);
+    }
+    
+    orderSection.style.display = 'block';
+    renderOrderHistory();
+}
+
+function renderOrderHistory() {
+    const orderGrid = document.getElementById('orderHistoryGrid');
+    const emptyOrders = document.getElementById('emptyOrders');
+    
+    if (orderHistory.length === 0) {
+        orderGrid.style.display = 'none';
+        emptyOrders.style.display = 'block';
+        return;
+    }
+    
+    orderGrid.style.display = 'grid';
+    emptyOrders.style.display = 'none';
+    
+    orderGrid.innerHTML = orderHistory.map(order => `
+        <div class="product-card" style="border: 2px solid #667eea;">
+            <div class="product-name" style="font-size: 1.2rem; margin-bottom: 1rem;">
+                Order #${order.id.slice(-8)}
+            </div>
+            <div style="color: #666; margin-bottom: 0.5rem;">
+                <i class="fas fa-calendar"></i> ${order.date}
+            </div>
+            <div style="color: #666; margin-bottom: 0.5rem;">
+                <i class="fas fa-box"></i> ${order.items.length} item(s)
+            </div>
+            <div class="product-price" style="margin: 1rem 0;">
+                $${order.total.toFixed(2)}
+            </div>
+            <div style="padding: 0.5rem 1rem; background: #e8f5e9; color: #2e7d32; border-radius: 20px; text-align: center; font-weight: 600;">
+                ${order.status}
+            </div>
+            <div style="margin-top: 1rem;">
+                <button class="view-details-btn" onclick="viewOrderDetails('${order.id}')" style="width: 100%;">
+                    View Details
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function viewOrderDetails(orderId) {
+    const order = orderHistory.find(o => o.id === orderId);
+    if (!order) return;
+    
+    const itemsList = order.items.map(item => 
+        `${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`
+    ).join('\n');
+    
+    showMessage(`Order Details:\n${itemsList}\nTotal: $${order.total.toFixed(2)}`, 'success');
+}
+
+// User Profile functionality
+function showUserProfile() {
+    const profileInfo = `
+        👤 ${currentUser.name}
+        📧 ${currentUser.email}
+        🛒 ${cart.length} items in cart
+        ❤️ ${wishlist.length} items in wishlist
+        📦 ${orderHistory.length} orders placed
+    `;
+    
+    showMessage(profileInfo, 'success');
+}
 
 // Service Worker registration for PWA capabilities (optional)
 if ('serviceWorker' in navigator) {
